@@ -16,5 +16,12 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
+ # Expose default port (Railway will inject PORT, but this helps detection)
+ EXPOSE 8080
+
+ # Safe defaults
+ ENV NODE_ENV=production \
+     HOST=0.0.0.0
+
 # Start minimal version (no DB/Redis required)
-CMD ["sh", "-c", "PORT=${PORT:-8080} node dist/index.minimal.js"]
+CMD ["sh", "-c", "export PORT=${PORT:-8080}; echo 'Starting minimal server'; echo \"NODE_ENV=$NODE_ENV HOST=$HOST PORT=$PORT\"; ls -la dist || true; node dist/index.minimal.js"]
