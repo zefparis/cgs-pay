@@ -1,59 +1,18 @@
-# Build stage - v2 to force Railway rebuild
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build TypeScript
-RUN npm run build
-
-# Production stage
+# ULTRA SIMPLE DOCKERFILE FOR RAILWAY
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling and OpenSSL for Prisma
-RUN apk add --no-cache dumb-init openssl openssl-dev
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Copy package files
+# Copy everything
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY dist ./dist/
 
-# Install production dependencies only
-RUN npm ci --production && \
-    npx prisma generate && \
-    npm cache clean --force
+# Install production deps and generate Prisma
+RUN npm ci --production && npx prisma generate
 
-# Copy built application
-COPY --from=builder /app/dist ./dist
-
-# Change ownership
-RUN chown -R nodejs:nodejs /app
-
-# USER nodejs  # Disable for Railway debugging
-
-# Expose port
-EXPOSE 8080
-
-# Health check disabled for Railway debugging
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD node -e "require('http').get('http://localhost:8080/healthz', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
-
-# Force Railway port and debug
-CMD ["sh", "-c", "echo 'Starting app...' && echo 'DATABASE_URL:' $DATABASE_URL && echo 'PORT:' $PORT && export HOST=0.0.0.0 && node dist/index.js"]
+# Start app directly - NO MIGRATIONS
+CMD ["node", "dist/index.js"]
