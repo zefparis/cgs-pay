@@ -46,7 +46,7 @@ COPY --from=builder /app/dist ./dist
 # Change ownership
 RUN chown -R nodejs:nodejs /app
 
-USER nodejs
+# USER nodejs  # Disable for Railway debugging
 
 # Expose port
 EXPOSE 8080
@@ -55,8 +55,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/healthz', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start application WITHOUT migrations - tables already exist
+# Simple start without dumb-init for Railway debugging
 CMD ["node", "dist/index.js"]
