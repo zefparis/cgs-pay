@@ -16,5 +16,5 @@ COPY prisma ./prisma/
 RUN npm ci --production && npx prisma generate
 COPY --from=builder /app/dist ./dist
 
-# Start app with full error logging
-CMD ["sh", "-c", "echo 'App starting...' && echo 'NODE_ENV:' $NODE_ENV && echo 'DATABASE_URL:' $DATABASE_URL && echo 'REDIS_URL:' $REDIS_URL && echo 'PORT:' $PORT && node dist/index.js 2>&1"]
+# Force port 8080 for Railway
+CMD ["sh", "-c", "export PORT=8080 && node dist/index.js"]
