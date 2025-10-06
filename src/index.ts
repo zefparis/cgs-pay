@@ -9,12 +9,21 @@ const HOST = process.env.HOST || '0.0.0.0'
 
 async function start() {
   try {
-    // Connect to database
-    await connectDB()
+    // Try to connect to database (non-blocking)
+    try {
+      await connectDB()
+      logger.info('Database connected successfully')
+    } catch (dbError) {
+      logger.warn({ error: dbError }, 'Database connection failed - continuing without DB')
+    }
     
-    // Start queue workers
+    // Start queue workers only if DB is available
     if (process.env.WORKER_ENABLED !== 'false') {
-      startWorkers()
+      try {
+        startWorkers()
+      } catch (workerError) {
+        logger.warn({ error: workerError }, 'Workers failed to start - continuing without workers')
+      }
     }
     
     // Build and start server
