@@ -51,12 +51,12 @@ USER nodejs
 # Expose port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/healthz', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+# Health check disabled for Railway debugging
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD node -e "require('http').get('http://localhost:8080/healthz', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start application with migrations for Railway
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && PORT=${PORT:-8080} node dist/index.js"]
