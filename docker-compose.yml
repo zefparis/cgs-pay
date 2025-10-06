@@ -54,11 +54,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        node dist/index.js
-      "
+    command: node dist/index.js
 
   worker:
     build:

@@ -23,7 +23,15 @@ export const settlementRoutes: FastifyPluginAsync = async (server) => {
   // Close day and trigger settlement
   server.post('/settlements/close-day', {
     schema: {
-      body: CloseDaySchema,
+      body: {
+        type: 'object',
+        properties: {
+          periodStart: { type: 'string', format: 'date-time' },
+          periodEnd: { type: 'string', format: 'date-time' },
+          dryRun: { type: 'boolean' }
+        },
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     // Verify internal auth
@@ -83,7 +91,14 @@ export const settlementRoutes: FastifyPluginAsync = async (server) => {
   // Get settlement run details
   server.get('/runs/:id', {
     schema: {
-      params: GetRunSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' }
+        },
+        required: ['id'],
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     const { id } = request.params as z.infer<typeof GetRunSchema>
