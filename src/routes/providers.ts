@@ -13,7 +13,14 @@ export const providerRoutes: FastifyPluginAsync = async (server) => {
   // Provider webhook endpoint
   server.post('/providers/:name/webhook', {
     schema: {
-      params: WebhookParamsSchema,
+      params: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', enum: ['thunes', 'rapyd'] }
+        },
+        required: ['name'],
+        additionalProperties: false
+      }
     },
     config: {
       rateLimit: {
@@ -129,7 +136,14 @@ export const providerRoutes: FastifyPluginAsync = async (server) => {
   // Get provider status
   server.get('/providers/:name/status', {
     schema: {
-      params: WebhookParamsSchema,
+      params: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', enum: ['thunes', 'rapyd'] }
+        },
+        required: ['name'],
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     const { name } = request.params as z.infer<typeof WebhookParamsSchema>

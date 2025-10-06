@@ -21,7 +21,14 @@ export const payoutRoutes: FastifyPluginAsync = async (server) => {
   // Retry a failed payout
   server.post('/payouts/:id/retry', {
     schema: {
-      params: RetryPayoutSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' }
+        },
+        required: ['id'],
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     const { id } = request.params as z.infer<typeof RetryPayoutSchema>
@@ -72,7 +79,14 @@ export const payoutRoutes: FastifyPluginAsync = async (server) => {
   // Get payout details
   server.get('/payouts/:id', {
     schema: {
-      params: RetryPayoutSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' }
+        },
+        required: ['id'],
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     const { id } = request.params as z.infer<typeof RetryPayoutSchema>
@@ -132,7 +146,17 @@ export const payoutRoutes: FastifyPluginAsync = async (server) => {
   // List payouts with filters
   server.get('/payouts', {
     schema: {
-      querystring: ListPayoutsSchema,
+      querystring: {
+        type: 'object',
+        properties: {
+          investorId: { type: 'string', format: 'uuid' },
+          runId: { type: 'string', format: 'uuid' },
+          status: { type: 'string', enum: ['PENDING', 'SUBMITTED', 'SETTLED', 'FAILED'] },
+          limit: { type: 'number', minimum: 1, maximum: 100, default: 10 },
+          offset: { type: 'number', minimum: 0, default: 0 }
+        },
+        additionalProperties: false
+      }
     },
   }, async (request, reply) => {
     const query = request.query as z.infer<typeof ListPayoutsSchema>
