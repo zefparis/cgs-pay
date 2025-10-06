@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WalletType {
+  MOBILE_MONEY
+  BANK
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum SettlementStatus {
+  DRAFT
+  FINALIZED
+  PAID
+  PARTIAL
+  FAILED
+}
+
+enum PayoutStatus {
+  PENDING
+  SUBMITTED
+  SETTLED
+  FAILED
+}
+
+enum LedgerAccount {
+  NGR
+  TAX
+  MKT
+  INVESTOR
+  COMPANY
+  FEES
+  RESERVE
+}
+
+enum LedgerSide {
+  DEBIT
+  CREDIT
+}
+
+enum PayoutFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum InvestorBasis {
+  NGR
+  NGR_NET
+}
+
+enum ProviderName {
+  THUNES
+  RAPYD
+}
+
+model Investor {
+  id             String              @id @default(uuid())
+  name           String
+  phoneOrIban    String
+  walletType     WalletType
+  currency       String              @default("EUR")
+  kycStatus      KycStatus           @default(PENDING)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  agreements     InvestorAgreement[]
+  payouts        PayoutInstruction[]
+  ledgerEntries  LedgerEntry[]
+
+  @@index([kycStatus])
+}
+
+model InvestorAgreement {
+  id                 String          @id @default(uuid())
+  investorId         String
+  sharePercent       Decimal         @default(25)
+  basis              InvestorBasis   @default(NGR_NET)
+  minPayoutThreshold Decimal         @default(100)
+  payoutFrequency    PayoutFrequency @default(DAILY)
+  active             Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  investor           Investor        @relation(fields: [investorId], references: [id])
+
+  @@index([investorId, active])
+}
+
+model LedgerEntry {
+  id         String        @id @default(uuid())
+  ts         DateTime      @default(now())
+  account    LedgerAccount
+  investorId String?
+  amount     Decimal
+  currency   String        @default("EUR")
+  ref        String
+  runId      String
+  side       LedgerSide
+  createdAt  DateTime      @default(now())
+  investor   Investor?     @relation(fields: [investorId], references: [id])
+  run        SettlementRun @relation(fields: [runId], references: [id])
+
+  @@index([runId])
+  @@index([investorId])
+  @@index([account])
+  @@index([ts])
+}
+
+model SettlementRun {
+  id           String               @id @default(uuid())
+  periodStart  DateTime
+  periodEnd    DateTime
+  status       SettlementStatus     @default(DRAFT)
+  totalsJson   Json
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  ledgers      LedgerEntry[]
+  payouts      PayoutInstruction[]
+  snapshot     SimSnapshot?
+
+  @@index([status])
+  @@index([periodStart, periodEnd])
+}
+
+model PayoutInstruction {
+  id              String           @id @default(uuid())
+  investorId      String
+  runId           String
+  provider        ProviderName
+  amount          Decimal
+  currency        String           @default("EUR")
+  fee             Decimal          @default(0)
+  fxRate          Decimal          @default(1)
+  externalId      String?
+  status          PayoutStatus     @default(PENDING)
+  providerMessage String?
+  retryCount      Int              @default(0)
+  idempotencyKey  String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  investor        Investor         @relation(fields: [investorId], references: [id])
+  run             SettlementRun    @relation(fields: [runId], references: [id])
+
+  @@index([status])
+  @@index([runId])
+  @@index([investorId])
+}
+
+model ProviderConfig {
+  id             String       @id @default(uuid())
+  name           ProviderName @unique
+  baseUrl        String
+  apiKey         String
+  apiSecret      String
+  walletCurrency String       @default("EUR")
+  active         Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model SimSnapshot {
+  id                String        @id @default(uuid())
+  periodStart       DateTime
+  periodEnd         DateTime
+  stake             Decimal
+  ggr               Decimal
+  ngr               Decimal
+  feesPct           Decimal       @default(5)
+  bonusesPct        Decimal       @default(10)
+  taxesPct          Decimal       @default(20)
+  mktPct            Decimal       @default(20)
+  payoutFeesPct     Decimal       @default(1.2)
+  fxPct             Decimal       @default(0)
+  marketingOn       Boolean       @default(true)
+  marketMultiplier  Int           @default(30)
+  runId             String?       @unique
+  createdAt         DateTime      @default(now())
+  run               SettlementRun? @relation(fields: [runId], references: [id])
+
+  @@index([periodStart, periodEnd])
+}

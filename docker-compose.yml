@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: congo_user
+      POSTGRES_PASSWORD: congo_pass
+      POSTGRES_DB: congo_payout
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U congo_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://congo_user:congo_pass@postgres:5432/congo_payout?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 8080
+      CG_INTERNAL_SECRET: dev-secret
+      PROVIDER: THUNES
+      DRY_RUN_MODE: "true"
+      DEFAULT_TAXES_PCT: "20"
+      DEFAULT_MARKETING_PCT: "20"
+      DEFAULT_INVESTOR_SHARE_PCT: "25"
+      DEFAULT_PAYOUT_FEES_PCT: "1.2"
+      DEFAULT_FX_PCT: "0"
+      DEFAULT_MARKET_MULTIPLIER: "30"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        node dist/index.js
+      "
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      DATABASE_URL: postgresql://congo_user:congo_pass@postgres:5432/congo_payout?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      CG_INTERNAL_SECRET: dev-secret
+      PROVIDER: THUNES
+      DRY_RUN_MODE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:

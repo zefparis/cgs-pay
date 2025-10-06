@@ -1,0 +1,64 @@
+{
+  "name": "congo-gaming-payout",
+  "version": "1.0.0",
+  "description": "Automated investor payout microservice for Congo Gaming",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:standalone": "tsx watch src/index.standalone.ts",
+    "dev:minimal": "tsx watch src/index.minimal.ts",
+    "dev:worker": "tsx watch src/queue.worker.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "start:standalone": "tsx src/index.standalone.ts",
+    "start:minimal": "tsx src/index.minimal.ts",
+    "worker": "node dist/queue.worker.js",
+    "postinstall": "prisma generate",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:reset": "prisma migrate reset --force",
+    "generate": "prisma generate",
+    "studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@prisma/client": "^5.8.0",
+    "bullmq": "^5.1.0",
+    "dayjs": "^1.11.10",
+    "decimal.js": "^10.4.3",
+    "dotenv": "^16.3.1",
+    "fastify": "^4.25.2",
+    "fastify-plugin": "^4.5.1",
+    "ioredis": "^5.3.2",
+    "pino": "^10.0.0",
+    "pino-pretty": "^10.3.1",
+    "prom-client": "^15.1.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^8.56.0",
+    "prisma": "^5.8.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
