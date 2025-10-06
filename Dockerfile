@@ -55,5 +55,5 @@ EXPOSE 8080
 # HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 #   CMD node -e "require('http').get('http://localhost:8080/healthz', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
 
-# Simple start without dumb-init for Railway debugging
-CMD ["node", "dist/index.js"]
+# Force Railway port and debug
+CMD ["sh", "-c", "echo 'Starting app...' && echo 'DATABASE_URL:' $DATABASE_URL && echo 'PORT:' $PORT && export HOST=0.0.0.0 && node dist/index.js"]
