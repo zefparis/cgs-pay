@@ -10,8 +10,6 @@ export const healthRoutes: FastifyPluginAsync = async (server) => {
       services: {},
     }
     
-    let allHealthy = true
-    
     // Check database (non-critical)
     try {
       await prisma.$queryRaw`SELECT 1`
