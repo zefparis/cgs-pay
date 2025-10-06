@@ -58,5 +58,5 @@ EXPOSE 8080
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Start application with migrations for Railway
-CMD ["sh", "-c", "npx prisma migrate deploy && PORT=${PORT:-8080} node dist/index.js"]
+# Start application WITHOUT migrations - tables already exist
+CMD ["node", "dist/index.js"]
