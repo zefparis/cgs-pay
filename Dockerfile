@@ -1,4 +1,4 @@
-# Build stage
+# Build stage - v2 to force Railway rebuild
 FROM node:20-alpine AS builder
 
 WORKDIR /app
