@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "dist/index.js": {
-      "runtime": "@vercel/node@3"
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "/dist/index.js"
     }
-  ],
-  "buildCommand": "npm run build"
+  ]
 }
